@@ -13,9 +13,12 @@ logger = logging.getLogger("ComfyUI-GPT")
 # 定义关键路径
 try:
     logger.info("Loading comfyui-gpt frontend module...")
-    workdir_path = Path(__file__).parent.absolute()
+    workdir_path = Path(__file__).parent.parent.absolute()
     comfyui_path = Path(folder_paths.__file__).parent.absolute()
 
+    if not str(workdir_path).startswith(str(comfyui_path / 'custom_nodes')):
+        logger.error("ComfyUI-GPT doesn't install in the correct location. workdir_path: %s, comfyui_path: %s", workdir_path, comfyui_path)
+        raise ValueError("ComfyUI-GPT doesn't install in the custom_nodes directory!!!")
     # storage_path = workdir_path / "storage"
     comfyui_gpt_client_path = workdir_path / "client"
 
@@ -25,7 +28,7 @@ try:
 
     if comfyui_gpt_client_path.exists() and comfyui_gpt_client_path.is_dir():
         server.PromptServer.instance.app.add_routes([
-            web.static('/', comfyui_gpt_client_path),
+            web.static('/client/', comfyui_gpt_client_path),
         ])
 
         logger.info("Successfully loaded gpt web routes from: %s", comfyui_gpt_client_path)
