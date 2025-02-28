@@ -7,3 +7,15 @@ ComfyUI-GPT is a intelligent assistant based on ComfyUI framework, and aim to si
 ## swim lane diagram
 
 ![swim lane diagram](./assets/ComfyUI-GPT-Swim-Lane.png)
+
+## Functions Enum
+
+- [ ] General Chat With ComfyUI
+- [ ] Workflow Query and Load 
+- [ ] Make Custom node automatically
+- [ ] Parameter Fine-tuning
+- [ ] Support secondary development
+- [ ] Model Relationships and Associations 
+- [ ] Node Introduction
+- [ ] Workflow arrangement
+- [ ] Workflow Optimization
