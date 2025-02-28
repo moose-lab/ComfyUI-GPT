@@ -20,17 +20,25 @@ try:
         logger.error("ComfyUI-GPT doesn't install in the correct location. workdir_path: %s, comfyui_path: %s", workdir_path, comfyui_path)
         raise ValueError("ComfyUI-GPT doesn't install in the custom_nodes directory!!!")
     # storage_path = workdir_path / "storage"
-    comfyui_gpt_client_path = workdir_path / "client"
+    comfyui_gpt_client_path = workdir_path / 'client'
 
     # if not storage_path.exists():
     #     storage_path.mkdir(parents=True)
     #     logger.info("Create database directory at: %s", storage_path)
 
     if comfyui_gpt_client_path.exists() and comfyui_gpt_client_path.is_dir():
+        # 列出目录内容以便调试
+        logger.info("Client directory contents: %s", list(comfyui_gpt_client_path.iterdir()))
+        
         server.PromptServer.instance.app.add_routes([
             web.static('/client/', comfyui_gpt_client_path),
         ])
-
+        
+        # # 添加一个简单的测试路由
+        # @server.PromptServer.instance.app.route('/client-test')
+        # async def client_test(request):
+        #     return web.Response(text="Client route is working")
+        
         logger.info("Successfully loaded gpt web routes from: %s", comfyui_gpt_client_path)
     else:
         error_msg = f"GPT web routes not found or invalid: {comfyui_gpt_client_path}"

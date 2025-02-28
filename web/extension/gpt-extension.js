@@ -1,4 +1,4 @@
-import { app } from "../../scripts/app.js";
+import { app } from "../../../scripts/app.js";
 
 // 定义事件常量
 const GPT_REGISTERED_EVENTS = {
@@ -27,17 +27,17 @@ function addExtraMenuOptions(nodeType, nodeData, app) {
         
         // 添加GPT信息选项到菜单
         options.push({
-            content: "GPT info",
+            content: "GPT Capacity",
             callback: async () => {
                 try {
                     // 确保GPT_REGISTERED_EVENTS已定义
-                    if (!window.GPT_REGISTERED_EVENTS || !window.GPT_REGISTERED_EVENTS.EXPLAIN_NODE) {
+                    if (!GPT_REGISTERED_EVENTS || !GPT_REGISTERED_EVENTS.EXPLAIN_NODE) {
                         console.error("GPT_REGISTERED_EVENTS is not defined or EXPLAIN_NODE is none");
                         return;
                     }
                     
                     // 触发自定义事件
-                    window.dispatchEvent(new CustomEvent(window.GPT_REGISTERED_EVENTS.EXPLAIN_NODE, {
+                    window.dispatchEvent(new CustomEvent(GPT_REGISTERED_EVENTS.EXPLAIN_NODE, {
                         detail: { nodeType: nodeTypeUniqueId }
                     }));
                 } catch (error) {
