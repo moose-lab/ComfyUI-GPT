@@ -1,3 +1,4 @@
+from .router.app import *
 
 # ComfyUI-GPT 前端注册到web服务器
 WEB_DIRECTORY = "web"
