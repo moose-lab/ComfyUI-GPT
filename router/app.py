@@ -1,4 +1,3 @@
-import os
 import sys
 import logging
 import server
@@ -13,6 +12,7 @@ logger = logging.getLogger("ComfyUI-GPT")
 
 # 定义关键路径
 try:
+    logger.info("Loading comfyui-gpt frontend module...")
     workdir_path = Path(__file__).parent.absolute()
     comfyui_path = Path(folder_paths.__file__).parent.absolute()
 
