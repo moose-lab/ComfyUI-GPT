@@ -63,17 +63,17 @@ function App() {
   const chatContainer = document.createElement('div');
   chatContainer.className = 'comfyui-gpt-chat-container';
   chatContainer.style.display = 'none';
+  chatContainer.style.opacity = '0';
+  chatContainer.style.transition = 'opacity 0.2s ease-in-out';
   container.appendChild(chatContainer);
   
   // 状态变量
   let isChatVisible = false;
   let chatComponent = null;
   
-  // 初始化拖拽功能
-  let draggable = null;
-  
   // 点击按钮显示/隐藏聊天界面
   const toggleChat = async () => {
+    console.log("记录日记");
     if (!isChatVisible) {
       // 懒加载聊天组件
       if (!chatComponent) {
@@ -89,9 +89,17 @@ function App() {
       }
       
       chatContainer.style.display = 'block';
+      // Use setTimeout to ensure the display change takes effect before opacity transition
+      setTimeout(() => {
+        chatContainer.style.opacity = '1';
+      }, 0);
       isChatVisible = true;
     } else {
-      chatContainer.style.display = 'none';
+      chatContainer.style.opacity = '0';
+      // Wait for opacity transition to complete before hiding
+      setTimeout(() => {
+        chatContainer.style.display = 'none';
+      }, 200); // Match the transition duration
       isChatVisible = false;
     }
   };
@@ -111,7 +119,7 @@ function App() {
   // 初始化函数
   const init = () => {
     // 初始化拖拽
-    draggable = useDraggable(container, {
+    draggable = useDraggable(button, {
       initialX: window.innerWidth - 160,
       initialY: 20,
       boundaryPadding: { right: 100, bottom: 40 },
@@ -121,8 +129,6 @@ function App() {
     // 注册事件监听
     window.addEventListener(GPT_REGISTERED_EVENTS.EXPLAIN_NODE, handleExplainNode);
     
-    // 添加按钮点击事件
-    button.addEventListener('click', toggleChat);
   };
   
   // 清理函数

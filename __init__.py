@@ -8,7 +8,7 @@ except Exception as e:
     logging.error("Loading the static web routes failed: %s", str(e))
     raise e
 
-
+from .service import *
 # ComfyUI-GPT 后端注册到custom nodes
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}

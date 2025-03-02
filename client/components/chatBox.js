@@ -4,6 +4,8 @@
  */
 
 import { chatHeader  } from './chat/chatHeader.js';
+import { chatMessage } from './chat/chatMessage.js';
+import { chatFooter } from './chat/chatFooter.js';
 
 function chatBox() {
   // 创建聊天界面容器
@@ -21,13 +23,68 @@ function chatBox() {
   container.style.flexDirection = 'column';
   container.style.overflow = 'hidden';
 
+  // 聊天历史记录
+  let chatHistory = [];
+
+  // 发送消息
+  const sendMessage = async (text) => {
+    if (!text) return;
+    
+    // 添加用户消息到界面
+    addUserMessage(text);
+    
+    // 添加到聊天历史
+    chatHistory.push({ role: 'user', content: text });
+    // 保存聊天历史到本地存储
+    saveHistory();
+    
+    try {
+      // 显示加载状态
+      const loadingId = showLoadingMessage();
+      
+      // 调用API发送消息
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          message: text,
+          history: chatHistory // 发送历史记录以保持上下文
+        }),
+      });
+      
+      const data = await response.json();
+      console.log("API Response:", data);
+      
+      // 移除加载状态
+      removeLoadingMessage(loadingId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      addGPTMessage(data.message.content);
+      
+      // 添加到聊天历史
+      chatHistory.push({ role: 'assistant', content: data.message.content });
+      // 保存聊天历史到本地存储
+      saveHistory();
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      addGPTMessage('抱歉，发送消息时出现错误。请检查网络连接或稍后再试。');
+    }
+  };
+
   const handleClearHistory = () => {
     // 清除消息容器中的所有消息
-    messageContainer.innerHTML = '';
-    // 如果有存储聊天历史的数组，也需要清空
+    messagesContainer.innerHTML = '';
+    // 清空聊天历史
     chatHistory = [];
-    // 可能还需要清除localStorage中的记录
+    // 清除localStorage中的记录
     localStorage.removeItem('chatHistory');
+    // 添加欢迎消息
+    addWelcomeMessage();
   };
 
   const handleClose = () => {
@@ -36,56 +93,35 @@ function chatBox() {
       chatBox.style.display = 'none';
   };
 
+  const handlerSumbit = (text) => {
+    // 实现sendMessage的逻辑
+    sendMessage(text);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const text = e.target.value.trim();
+      if (text) {
+        sendMessage(text);
+        e.target.value = '';
+      }
+    }
+  };
+
   const header = chatHeader({
     onClose: handleClose,
     onClearHistory: handleClearHistory
   });
 
-  container.appendChild(header);
-  
-  // 创建聊天消息区域
-  const messagesContainer = document.createElement('div');
-  messagesContainer.className = 'comfyui-gpt-messages';
-  messagesContainer.style.flex = '1';
-  messagesContainer.style.overflowY = 'auto';
-  messagesContainer.style.padding = '16px';
-  
-  // 创建输入区域
-  const inputContainer = document.createElement('div');
-  inputContainer.className = 'comfyui-gpt-input-container';
-  inputContainer.style.padding = '12px 16px';
-  inputContainer.style.borderTop = '1px solid #222222';
-  inputContainer.style.display = 'flex';
-  
-  const textarea = document.createElement('textarea');
-  textarea.className = 'comfyui-gpt-input';
-  textarea.placeholder = '输入您的问题...';
-  textarea.style.flex = '1';
-  textarea.style.padding = '8px 12px';
-  textarea.style.border = '1px solid #d1d5db';
-  textarea.style.borderRadius = '4px';
-  textarea.style.resize = 'none';
-  textarea.style.height = '40px';
-  textarea.style.maxHeight = '120px';
-  
-  const sendButton = document.createElement('button');
-  sendButton.textContent = '发送';
-  sendButton.className = 'comfyui-gpt-send-button';
-  sendButton.style.marginLeft = '8px';
-  sendButton.style.padding = '8px 16px';
-  sendButton.style.backgroundColor = '#3b82f6';
-  sendButton.style.color = '#ffffff';
-  sendButton.style.border = 'none';
-  sendButton.style.borderRadius = '4px';
-  sendButton.style.cursor = 'pointer';
-  
-  inputContainer.appendChild(textarea);
-  inputContainer.appendChild(sendButton);
+  const messagesContainer = chatMessage();
+
+  const footer = chatFooter({onSumbit: handlerSumbit, onKeyDown: handleKeyDown});
   
   // 组装聊天界面
   container.appendChild(header);
   container.appendChild(messagesContainer);
-  container.appendChild(inputContainer);
+  container.appendChild(footer);
   
   // 添加欢迎消息
   const addWelcomeMessage = () => {
@@ -108,7 +144,7 @@ function chatBox() {
     message.className = 'comfyui-gpt-message comfyui-gpt-message-user';
     message.style.marginBottom = '12px';
     message.style.padding = '12px';
-    message.style.backgroundColor = '#dbeafe';
+    message.style.backgroundColor = '#353b50';
     message.style.borderRadius = '8px';
     message.style.maxWidth = '80%';
     message.style.marginLeft = 'auto';
@@ -118,13 +154,13 @@ function chatBox() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   };
   
-  // 添加AI消息
-  const addAIMessage = (text) => {
+  // 添加LLM解析的消息
+  const addGPTMessage = (text) => {
     const message = document.createElement('div');
     message.className = 'comfyui-gpt-message comfyui-gpt-message-ai';
     message.style.marginBottom = '12px';
     message.style.padding = '12px';
-    message.style.backgroundColor = '#f3f4f6';
+    message.style.backgroundColor = '#353b50';
     message.style.borderRadius = '8px';
     message.style.maxWidth = '80%';
     
@@ -133,62 +169,107 @@ function chatBox() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   };
   
-  // 发送消息
-  const sendMessage = async () => {
-    const text = textarea.value.trim();
-    if (!text) return;
+  // 显示加载状态
+  const showLoadingMessage = () => {
+    const loadingMessage = document.createElement('div');
+    loadingMessage.className = 'comfyui-gpt-message comfyui-gpt-message-ai comfyui-gpt-loading';
+    loadingMessage.style.marginBottom = '12px';
+    loadingMessage.style.padding = '12px';
+    loadingMessage.style.backgroundColor = '#353b50';
+    loadingMessage.style.borderRadius = '8px';
+    loadingMessage.style.maxWidth = '80%';
     
-    // 添加用户消息到界面
-    addUserMessage(text);
-    textarea.value = '';
+    const loadingDots = document.createElement('div');
+    loadingDots.textContent = '正在思考...';
+    loadingDots.style.display = 'flex';
+    loadingDots.style.alignItems = 'center';
     
-    try {
-      // 这里应该调用API发送消息
-      // 暂时模拟一个响应
-      setTimeout(() => {
-        addAIMessage(`您发送了: ${text}\n\n这是一个模拟的回复，实际功能需要连接到后端API。`);
-      }, 1000);
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      addAIMessage('抱歉，发送消息时出现错误。');
+    loadingMessage.appendChild(loadingDots);
+    messagesContainer.appendChild(loadingMessage);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    return loadingMessage.id = `loading-${Date.now()}`;
+  };
+  
+  // 移除加载状态
+  const removeLoadingMessage = (id) => {
+    const loadingMessage = document.getElementById(id);
+    if (loadingMessage) {
+      loadingMessage.remove();
     }
   };
   
   // 解释节点功能
-  const explainNode = () => {
-    addAIMessage('正在分析当前选中的节点...\n\n这是一个模拟的节点解释，实际功能需要连接到后端API。');
+  const explainNode = async (nodeId, nodeType) => {
+    try {
+      // 显示加载状态
+      const loadingId = showLoadingMessage();
+      
+      // 调用API获取节点解释
+      const response = await fetch('/api/explain-node', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nodeId, nodeType }),
+      });
+      
+      // 移除加载状态
+      removeLoadingMessage(loadingId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      addGPTMessage(data.explanation);
+    } catch (error) {
+      console.error('Failed to explain node:', error);
+      addGPTMessage('抱歉，获取节点解释时出现错误。请检查网络连接或稍后再试。');
+    }
   };
   
-  // 事件处理
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+  // 保存聊天历史到本地存储
+  const saveHistory = () => {
+    localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+  };
+  
+  // 加载聊天历史
+  const loadHistory = () => {
+    const savedHistory = localStorage.getItem('chatHistory');
+    if (savedHistory) {
+      try {
+        chatHistory = JSON.parse(savedHistory);
+        // 显示历史消息
+        chatHistory.forEach(msg => {
+          if (msg.role === 'user') {
+            addUserMessage(msg.content);
+          } else if (msg.role === 'assistant') {
+            addGPTMessage(msg.content);
+          }
+        });
+      } catch (error) {
+        console.error('Failed to load chat history:', error);
+        // 如果加载失败，清空历史
+        chatHistory = [];
+        localStorage.removeItem('chatHistory');
+      }
+    } else {
+      // 如果没有历史记录，添加欢迎消息
+      addWelcomeMessage();
     }
   };
   
   // 初始化函数
   const init = () => {
-    // 添加事件监听
-    closeButton.addEventListener('click', () => {
-      container.style.display = 'none';
-    });
-    
-    sendButton.addEventListener('click', sendMessage);
-    textarea.addEventListener('keydown', handleKeyDown);
-    
-    // 添加欢迎消息
-    addWelcomeMessage();
+    // 加载聊天历史
+    loadHistory();
   };
   
   // 清理函数
   const destroy = () => {
-    closeButton.removeEventListener('click', () => {
-      container.style.display = 'none';
-    });
-    
-    sendButton.removeEventListener('click', sendMessage);
-    textarea.removeEventListener('keydown', handleKeyDown);
+    // 移除事件监听器和清理资源
+    // 注意：textarea已经不存在，这里不需要移除事件监听器
   };
   
   return {
@@ -197,7 +278,7 @@ function chatBox() {
     destroy,
     explainNode,
     addUserMessage,
-    addAIMessage
+    addGPTMessage
   };
 }
 
