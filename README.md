@@ -19,3 +19,9 @@ ComfyUI-GPT is a intelligent assistant based on ComfyUI framework, and aim to si
 - [ ] Node Introduction
 - [ ] Workflow arrangement
 - [ ] Workflow Optimization
+
+## Knowledges
+
+Knowledges will restore a lots of assets which guide the LLM to do tasks better, and give the LLM a lot of context to figure its works out, and make it more accurate and efficient.
+
+Keep the constraints and make full use of ComfyUI and LLM capabilities.
