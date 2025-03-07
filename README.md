@@ -10,7 +10,7 @@ ComfyUI-GPT is a intelligent assistant based on ComfyUI framework, and aim to si
 
 ## Functions Enum
 
-- [ ] General Chat With ComfyUI
+- [x] ~~General Chat With ComfyUI~~
 - [ ] Workflow Query and Load 
 - [ ] Make Custom node automatically
 - [ ] Parameter Fine-tuning
